@@ -1,0 +1,13 @@
+{
+  "name": "parent-circle",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Anonymous parent support community — chat, rooms, and moderation.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
