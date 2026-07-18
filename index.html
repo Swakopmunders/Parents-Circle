@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Parent Circle</title>
+<meta name="theme-color" content="#101B22" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="icon.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#101B22; --bg-soft:#16232B; --surface:#1D2E37; --surface-hi:#243C47;
+    --border:#2C4753; --teal:#6FAFA0; --teal-soft:#3E5F5A; --gold:#E3B567;
+    --text:#ECE7DC; --text-muted:#9FB2B7; --danger:#C97B84;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;height:100dvh;overflow:hidden;}
+  .serif{font-family:'Fraunces',serif;}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
+  input,textarea{font-family:inherit;}
+  @keyframes glow{0%,100%{opacity:.45}50%{opacity:1}}
+  .dot{width:8px;height:8px;border-radius:999px;background:var(--gold);animation:glow 2.4s ease-in-out infinite;}
+  .dot.live{background:var(--teal);}
+  ::-webkit-scrollbar{width:8px;} ::-webkit-scrollbar-thumb{background:var(--border);border-radius:8px;}
+
+  .authWrap{height:100dvh;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .authCard{max-width:400px;width:100%;background:var(--bg-soft);border:1px solid var(--border);border-radius:16px;padding:32px;}
+  .eyebrow{display:flex;align-items:center;gap:8px;color:var(--text-muted);font-size:12px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:20px;}
+  h1.title{font-size:28px;margin:0 0 10px;line-height:1.2;}
+  p.sub{color:var(--text-muted);font-size:14px;line-height:1.6;margin:0 0 22px;}
+  .nameRow{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 18px;display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+  .nameRow span{font-family:'Fraunces',serif;color:var(--gold);font-size:18px;}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-size:12px;color:var(--text-muted);margin-bottom:6px;}
+  .field input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 13px;color:var(--text);font-size:14px;outline:none;}
+  .field input:focus{border-color:var(--teal);}
+  .btnPrimary{width:100%;background:var(--teal);color:#0F1A1E;border-radius:10px;padding:13px;font-weight:600;font-size:14px;}
+  .btnPrimary:hover{opacity:.9;}
+  .btnPrimary:disabled{opacity:.4;cursor:not-allowed;}
+  .btnGhost{width:100%;color:var(--text-muted);border:1px solid var(--border);border-radius:10px;padding:11px;font-size:13px;margin-top:8px;}
+  .errMsg{color:var(--danger);font-size:13px;margin:-4px 0 12px;}
+  .iconBtn{color:var(--text-muted);}
+  .iconBtn:hover{opacity:1;}
+
+  .shell{display:flex;height:100dvh;}
+  .sidebar{width:280px;flex-shrink:0;background:var(--bg-soft);border-right:1px solid var(--border);display:flex;flex-direction:column;}
+  .sideHead{padding:20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+  .roomList{flex:1;overflow-y:auto;padding:12px;}
+  .roomList .lbl{color:var(--text-muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em;padding:0 8px;margin-bottom:8px;}
+  .roomBtn{width:100%;text-align:left;padding:10px 12px;border-radius:10px;margin-bottom:4px;border:1px solid transparent;}
+  .roomBtn.active{background:var(--surface-hi);border-color:var(--teal);}
+  .roomBtn .rn{font-size:14px;font-weight:500;}
+  .roomBtn .rb{font-size:12px;color:var(--text-muted);margin-top:2px;}
+  .sideFoot{border-top:1px solid var(--border);padding:16px;}
+  .idBox{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 13px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+  .idBox span{font-family:'Fraunces',serif;font-size:14px;}
+
+  .main{flex:1;display:flex;flex-direction:column;min-width:0;}
+  .topBar{border-bottom:1px solid var(--border);background:var(--bg-soft);padding:16px 20px;display:flex;align-items:center;gap:12px;}
+  .topBar .rn{font-family:'Fraunces',serif;font-size:18px;}
+  .topBar .rb{font-size:12px;color:var(--text-muted);}
+  .topBar .live{margin-left:auto;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text-muted);}
+  .msgs{flex:1;overflow-y:auto;padding:18px 20px;}
+  .empty{color:var(--text-muted);font-size:14px;text-align:center;margin-top:40px;}
+  .msg{margin-bottom:16px;}
+  .msg .row{display:flex;align-items:center;gap:8px;margin-bottom:4px;}
+  .msg .author{font-family:'Fraunces',serif;font-size:14px;color:var(--teal);}
+  .msg .author.mod{color:var(--gold);}
+  .msg .time{font-size:11px;color:var(--text-muted);}
+  .msg .body{font-size:14px;line-height:1.6;white-space:pre-wrap;}
+  .msg .actions{margin-left:auto;display:flex;gap:8px;opacity:0;transition:.15s;}
+  .msg:hover .actions{opacity:1;}
+  .attach img{max-width:240px;border:1px solid var(--border);border-radius:10px;margin-top:6px;display:block;}
+  .attach a{display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--text);margin-top:6px;text-decoration:none;}
+
+  .composer{border-top:1px solid var(--border);background:var(--bg-soft);padding:14px;}
+  .attachPreview{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;display:flex;align-items:center;justify-content:space-between;font-size:12px;margin-bottom:8px;}
+  .composeRow{display:flex;align-items:flex-end;gap:8px;}
+  .composeRow textarea{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px 13px;color:var(--text);font-size:14px;resize:none;outline:none;max-height:120px;}
+  .roundBtn{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:11px;color:var(--text-muted);}
+  .sendBtn{background:var(--teal);color:#0F1A1E;border-radius:10px;padding:11px;}
+  .sendBtn:disabled{opacity:.4;}
+
+  .overlay{position:fixed;inset:0;background:rgba(10,16,20,.7);display:flex;align-items:center;justify-content:center;padding:24px;z-index:40;}
+  .modal{max-width:380px;width:100%;background:var(--bg-soft);border:1px solid var(--border);border-radius:16px;padding:24px;max-height:80vh;overflow-y:auto;}
+  .modalHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+  .modalHead .t{font-family:'Fraunces',serif;font-size:18px;}
+  .reqCard{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;}
+  .reqCard .n{font-family:'Fraunces',serif;font-size:14px;margin-bottom:4px;}
+  .reqCard .m{color:var(--text-muted);font-size:12px;margin-bottom:8px;}
+  .reqCard .btns{display:flex;gap:8px;}
+  .smallBtn{font-size:12px;border-radius:8px;padding:6px 12px;}
+  .approveBtn{background:var(--teal);color:#0F1A1E;}
+  .denyBtn{color:var(--text-muted);border:1px solid var(--border);}
+  .settingRow{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);font-size:13px;}
+  .settingRow:last-child{border-bottom:none;}
+  .dangerBtn{width:100%;border:1px solid var(--danger);color:var(--danger);border-radius:10px;padding:11px;font-size:13px;margin-top:12px;}
+  .badge{display:inline-flex;align-items:center;gap:4px;background:var(--surface);color:var(--gold);border:1px solid var(--teal-soft);border-radius:999px;padding:3px 10px;font-size:11px;}
+  .banner{padding:8px 20px;font-size:13px;border-bottom:1px solid var(--border);}
+  .banner.err{background:#3A2226;color:var(--danger);}
+  .banner.info{background:var(--surface);color:var(--text-muted);}
+
+  .hidden{display:none !important;}
+  @media(max-width:760px){
+    .sidebar{position:fixed;inset:0;z-index:20;width:100%;}
+  }
+</style>
+</head>
+<body>
+
+<div id="screenLoading" class="authWrap">
+  <div style="display:flex;align-items:center;gap:8px;color:var(--text-muted);">
+    <span class="dot"></span><span>opening the porch light…</span>
+  </div>
+</div>
+
+<!-- AUTH: one screen covers both sign-up and sign-in -->
+<div id="screenAuth" class="authWrap hidden">
+  <div class="authCard">
+    <div class="eyebrow"><span class="dot"></span>Parent Circle</div>
+    <h1 class="title serif">Welcome to Parent Circle</h1>
+    <p class="sub">Sign in with your email. Your email is only visible to moderators — everyone else sees your display name.</p>
+    <div class="field">
+      <label>Email</label>
+      <input id="authEmail" type="email" autocomplete="email" />
+    </div>
+    <div class="field">
+      <label>Display name (shown to other parents)</label>
+      <input id="authDisplay" type="text" placeholder="e.g. Jordan's Mom" autocomplete="nickname" />
+    </div>
+    <div class="field">
+      <label>Password (at least 6 characters)</label>
+      <input id="authPw" type="password" autocomplete="current-password" />
+    </div>
+    <div id="authErr" class="errMsg hidden"></div>
+    <button id="authBtn" class="btnPrimary">Continue</button>
+    <p class="sub" style="margin:10px 0 0;font-size:12px;">Already registered? Just enter your email and password again — display name is only used the first time.</p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="screenApp" class="shell hidden">
+  <div class="sidebar" id="sidebar">
+    <div class="sideHead">
+      <div class="eyebrow" style="margin:0"><span class="dot"></span><span class="serif" style="font-size:16px;color:var(--text);text-transform:none;letter-spacing:0">Parent Circle</span></div>
+      <button id="closeSidebar" class="iconBtn hidden" style="font-size:18px;">✕</button>
+    </div>
+    <div class="roomList" id="roomList"></div>
+    <div class="sideFoot">
+      <div class="idBox">
+        <span id="appName"></span>
+        <span id="modBadge" class="badge hidden">mod</span>
+      </div>
+      <button id="settingsBtn" class="btnGhost" style="margin-top:0">Settings</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="topBar">
+      <button id="openSidebar" class="iconBtn hidden" style="font-size:20px;">☰</button>
+      <div>
+        <div class="rn serif" id="roomTitle"></div>
+        <div class="rb" id="roomBlurb"></div>
+      </div>
+      <div class="live"><span class="dot live" id="liveDot"></span><span id="liveLabel">connecting…</span></div>
+    </div>
+    <div id="verifyBanner" class="banner info hidden" style="display:flex;align-items:center;justify-content:space-between;gap:10px;">
+      <span>Verify your email to post — check your inbox for the link.</span>
+      <button id="resendVerify" class="smallBtn approveBtn" style="flex-shrink:0;">Resend email</button>
+    </div>
+    <div id="banner" class="banner hidden"></div>
+    <div class="msgs" id="msgs"></div>
+    <div class="composer">
+      <div id="attachPreview" class="attachPreview hidden"></div>
+      <input type="file" id="fileInput" class="hidden" accept="image/*,.pdf,.doc,.docx,.txt" />
+      <div class="composeRow">
+        <button id="attachBtn" class="roundBtn" title="Attach an image or document (under 150KB)">📎</button>
+        <textarea id="textInput" rows="1" placeholder="Write something…"></textarea>
+        <button id="sendBtn" class="sendBtn">➤</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="settingsOverlay" class="overlay hidden">
+  <div class="modal">
+    <div class="modalHead">
+      <span class="t serif">Settings</span>
+      <button id="closeSettings" class="iconBtn" style="font-size:18px;">✕</button>
+    </div>
+    <div class="settingRow">
+      <span>Signed in as</span>
+      <span class="serif" id="settingsName"></span>
+    </div>
+    <div class="settingRow" id="verifyRow">
+      <span id="verifyStatus">Email not verified</span>
+      <button id="resendVerifySettings" class="smallBtn approveBtn">Resend email</button>
+    </div>
+    <div class="settingRow" id="modRow">
+      <span>Moderator tools</span>
+      <button id="openModPanel" class="smallBtn approveBtn">Open</button>
+    </div>
+    <div class="settingRow hidden" id="applyRow">
+      <span>Not a moderator yet</span>
+      <button id="applyBtn" class="smallBtn denyBtn">Apply</button>
+    </div>
+    <button id="logoutBtn" class="btnGhost">Log out of this device</button>
+  </div>
+</div>
+
+<div id="applyOverlay" class="overlay hidden">
+  <div class="modal">
+    <div class="modalHead">
+      <span class="t serif">Apply to moderate</span>
+      <button id="closeApply" class="iconBtn" style="font-size:18px;">✕</button>
+    </div>
+    <div id="applyBody">
+      <p class="sub" style="margin-bottom:10px;">A short note on why you'd like to help (optional).</p>
+      <textarea id="applyMsg" rows="3" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px;color:var(--text);outline:none;"></textarea>
+      <button id="submitApply" class="btnPrimary" style="margin-top:12px;">Submit application</button>
+    </div>
+    <div id="applyResult" class="hidden sub"></div>
+  </div>
+</div>
+
+<div id="modOverlay" class="overlay hidden">
+  <div class="modal">
+    <div class="modalHead">
+      <span class="t serif">Moderator tools</span>
+      <button id="closeModPanel" class="iconBtn" style="font-size:18px;">✕</button>
+    </div>
+    <div class="eyebrow" style="margin-bottom:8px;">Pending requests</div>
+    <div id="reqList"></div>
+    <div class="eyebrow" style="margin:16px 0 8px;">Current moderators</div>
+    <div id="modList" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+  </div>
+</div>
+
+<script>
+const MAX_FILE_BYTES = 150*1024;
+function fmtTime(ts){ return new Date(ts).toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}); }
+function bytesToSize(b){ if(b<1024) return b+" B"; if(b<1024*1024) return (b/1024).toFixed(0)+" KB"; return (b/(1024*1024)).toFixed(1)+" MB"; }
+function escapeHtml(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+async function api(path, opts={}){
+  const res = await fetch(path, { credentials:"include", headers:{"Content-Type":"application/json"}, ...opts });
+  let body = null;
+  try{ body = await res.json(); }catch{}
+  if(!res.ok) throw new Error((body && body.error) || `Request failed (${res.status})`);
+  return body;
+}
+
+let me = null;
+let ROOMS = [];
+let activeRoom = null;
+let pendingAttachment = null;
+let currentSource = null;
+
+function show(id){
+  ["screenLoading","screenAuth","screenApp"].forEach(s=>{
+    document.getElementById(s).classList.toggle("hidden", s!==id);
+  });
+}
+
+async function boot(){
+  try{
+    ROOMS = await api("/api/rooms");
+  }catch(e){
+    document.body.innerHTML = `<div class="authWrap"><div class="authCard"><p class="sub">Can't reach the server. Is it running?</p></div></div>`;
+    return;
+  }
+  activeRoom = ROOMS[0].id;
+  try{
+    me = await api("/api/me");
+    enterApp();
+  }catch{
+    show("screenAuth");
+  }
+}
+
+document.getElementById("authBtn").onclick = async () => {
+  const email = document.getElementById("authEmail").value.trim();
+  const displayName = document.getElementById("authDisplay").value.trim();
+  const pw = document.getElementById("authPw").value;
+  const err = document.getElementById("authErr");
+  err.classList.add("hidden");
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){ err.textContent = "Please enter a valid email address."; err.classList.remove("hidden"); return; }
+  if(!displayName){ err.textContent = "Please choose a username."; err.classList.remove("hidden"); return; }
+  if(pw.length < 6){ err.textContent = "Password must be at least 6 characters."; err.classList.remove("hidden"); return; }
+  try{
+    me = await api("/api/auth", { method:"POST", body: JSON.stringify({ email, password: pw, displayName }) });
+    enterApp();
+  }catch(e){
+    err.textContent = e.message;
+    err.classList.remove("hidden");
+  }
+};
+
+function enterApp(){
+  document.getElementById("appName").textContent = me.displayName;
+  document.getElementById("settingsName").textContent = me.displayName;
+  document.getElementById("modBadge").classList.toggle("hidden", !me.isMod);
+  document.getElementById("modRow").classList.toggle("hidden", !me.isMod);
+  document.getElementById("applyRow").classList.toggle("hidden", !!me.isMod);
+  renderRoomList();
+  openRoom(activeRoom);
+  show("screenApp");
+  updateVerifyBanner();
+}
+
+function updateVerifyBanner(){
+  document.getElementById("verifyBanner").classList.toggle("hidden", !!me.verified);
+  document.getElementById("verifyRow").classList.toggle("hidden", !!me.verified);
+}
+document.getElementById("resendVerify").onclick = async () => {
+  try{
+    const r = await api("/api/resend-verification", { method:"POST" });
+    showBanner(r.alreadyVerified ? "You're already verified." : "Verification email sent — check your inbox.", "info");
+  }catch(e){
+    showBanner(e.message, "err");
+  }
+};
+document.getElementById("resendVerifySettings").onclick = async () => {
+  try{
+    const r = await api("/api/resend-verification", { method:"POST" });
+    showBanner(r.alreadyVerified ? "You're already verified." : "Verification email sent — check your inbox.", "info");
+  }catch(e){
+    showBanner(e.message, "err");
+  }
+};
+
+function renderRoomList(){
+  const el = document.getElementById("roomList");
+  el.innerHTML = `<div class="lbl">Rooms</div>`;
+  ROOMS.forEach(r => {
+    const btn = document.createElement("button");
+    btn.className = "roomBtn" + (r.id===activeRoom ? " active" : "");
+    btn.innerHTML = `<div class="rn">${r.name}</div><div class="rb">${r.blurb}</div>`;
+    btn.onclick = () => { activeRoom = r.id; renderRoomList(); openRoom(r.id); if(window.innerWidth<=760) closeSidebarFn(); };
+    el.appendChild(btn);
+  });
+}
+
+let roomMessages = [];
+async function openRoom(id){
+  const room = ROOMS.find(r=>r.id===id);
+  document.getElementById("roomTitle").textContent = room.name;
+  document.getElementById("roomBlurb").textContent = room.blurb;
+  document.getElementById("msgs").innerHTML = `<div class="empty">Loading…</div>`;
+  try{
+    roomMessages = await api(`/api/rooms/${id}/messages`);
+  }catch{
+    roomMessages = [];
+  }
+  renderMessages();
+  connectStream(id);
+}
+
+function connectStream(id){
+  if(currentSource) currentSource.close();
+  document.getElementById("liveLabel").textContent = "connecting…";
+  const es = new EventSource(`/api/rooms/${id}/stream`);
+  currentSource = es;
+  es.onopen = () => document.getElementById("liveLabel").textContent = "live";
+  es.onerror = () => { document.getElementById("liveLabel").textContent = "reconnecting…"; };
+  es.addEventListener("message", (e) => {
+    const msg = JSON.parse(e.data);
+    roomMessages.push(msg);
+    renderMessages();
+  });
+  es.addEventListener("delete", (e) => {
+    const { id: delId } = JSON.parse(e.data);
+    roomMessages = roomMessages.filter(m => m.id !== delId);
+    renderMessages();
+  });
+  es.addEventListener("pin", (e) => {
+    const { id: pinId } = JSON.parse(e.data);
+    roomMessages = roomMessages.map(m => ({...m, pinned: m.id===pinId}));
+    renderMessages();
+  });
+}
+
+function renderMessages(){
+  const el = document.getElementById("msgs");
+  el.innerHTML = "";
+  if(roomMessages.length===0){
+    el.innerHTML = `<div class="empty">No one's spoken here yet. Say hello — someone else is probably up too.</div>`;
+  }
+  roomMessages.forEach(m => {
+    const div = document.createElement("div");
+    div.className = "msg";
+    let attachHtml = "";
+    if(m.attachment){
+      if(m.attachment.expired){
+        attachHtml = `<div class="attach" style="color:var(--text-muted);font-size:12px;">📄 ${escapeHtml(m.attachment.name)} — attachment expired</div>`;
+      } else if(m.attachment.type && m.attachment.type.startsWith("image/")){
+        attachHtml = `<div class="attach"><img src="${m.attachment.dataUrl}" alt="${escapeHtml(m.attachment.name)}"/></div>`;
+      } else {
+        attachHtml = `<div class="attach"><a href="${m.attachment.dataUrl}" download="${escapeHtml(m.attachment.name)}">📄 ${escapeHtml(m.attachment.name)} · ${bytesToSize(m.attachment.size)}</a></div>`;
+      }
+    }
+    const actions = me.isMod ? `<span class="actions">
+        <button class="iconBtn" data-pin="${m.id}" title="Pin">📌</button>
+        <button class="iconBtn" data-block="${escapeHtml(m.author)}" title="Block author">🚫</button>
+        <button class="iconBtn" data-del="${m.id}" title="Delete">🗑</button>
+      </span>` : "";
+    div.innerHTML = `
+      <div class="row">
+        <span class="author serif ${m.isMod ? 'mod' : ''}">${escapeHtml(m.author)}</span>
+        <span class="time">${fmtTime(m.ts)}${m.pinned ? " · 📌 pinned" : ""}</span>
+        ${actions}
+      </div>
+      ${m.text ? `<div class="body">${escapeHtml(m.text)}</div>` : ""}
+      ${attachHtml}
+    `;
+    el.appendChild(div);
+  });
+  el.scrollTop = el.scrollHeight;
+  el.querySelectorAll("[data-del]").forEach(b => b.onclick = () => modAction(`/api/rooms/${activeRoom}/messages/${b.dataset.del}`, "DELETE"));
+  el.querySelectorAll("[data-pin]").forEach(b => b.onclick = () => modAction(`/api/rooms/${activeRoom}/messages/${b.dataset.pin}/pin`, "POST"));
+  el.querySelectorAll("[data-block]").forEach(b => b.onclick = () => {
+    if(confirm(`Block ${b.dataset.block} from posting?`)) modAction(`/api/mod/block`, "POST", { authorDisplayName: b.dataset.block });
+  });
+}
+async function modAction(path, method, body){
+  try{ await api(path, { method, body: body ? JSON.stringify(body) : undefined }); }
+  catch(e){ showBanner(e.message, "err"); }
+}
+function showBanner(text, kind){
+  const el = document.getElementById("banner");
+  el.textContent = text;
+  el.className = `banner ${kind}`;
+  el.classList.remove("hidden");
+  setTimeout(() => el.classList.add("hidden"), 4000);
+}
+
+document.getElementById("attachBtn").onclick = () => document.getElementById("fileInput").click();
+document.getElementById("fileInput").onchange = (e) => {
+  const file = e.target.files[0];
+  e.target.value = "";
+  if(!file) return;
+  if(file.size > MAX_FILE_BYTES){ showBanner(`That file is ${bytesToSize(file.size)}. Keep attachments under ${bytesToSize(MAX_FILE_BYTES)}.`, "err"); return; }
+  const reader = new FileReader();
+  reader.onload = () => {
+    pendingAttachment = { name:file.name, type:file.type||"application/octet-stream", size:file.size, dataUrl:reader.result };
+    renderAttachPreview();
+  };
+  reader.readAsDataURL(file);
+};
+function renderAttachPreview(){
+  const el = document.getElementById("attachPreview");
+  if(!pendingAttachment){ el.classList.add("hidden"); el.innerHTML=""; return; }
+  el.classList.remove("hidden");
+  el.innerHTML = `<span>📄 ${escapeHtml(pendingAttachment.name)} · ${bytesToSize(pendingAttachment.size)}</span><button id="clearAttach" class="iconBtn">✕</button>`;
+  document.getElementById("clearAttach").onclick = () => { pendingAttachment = null; renderAttachPreview(); };
+}
+
+document.getElementById("sendBtn").onclick = sendMessage;
+document.getElementById("textInput").addEventListener("keydown", (e) => {
+  if(e.key==="Enter" && !e.shiftKey){ e.preventDefault(); sendMessage(); }
+});
+async function sendMessage(){
+  const input = document.getElementById("textInput");
+  const text = input.value.trim();
+  if(!text && !pendingAttachment) return;
+  input.value = "";
+  const attachment = pendingAttachment;
+  pendingAttachment = null;
+  renderAttachPreview();
+  try{
+    await api(`/api/rooms/${activeRoom}/messages`, { method:"POST", body: JSON.stringify({ text, attachment }) });
+  }catch(e){
+    showBanner(e.message, "err");
+  }
+}
+
+document.getElementById("settingsBtn").onclick = () => document.getElementById("settingsOverlay").classList.remove("hidden");
+document.getElementById("closeSettings").onclick = () => document.getElementById("settingsOverlay").classList.add("hidden");
+document.getElementById("logoutBtn").onclick = async () => {
+  await api("/api/logout", { method:"POST" });
+  document.getElementById("settingsOverlay").classList.add("hidden");
+  if(currentSource) currentSource.close();
+  me = null;
+  document.getElementById("authEmail").value = "";
+  document.getElementById("authDisplay").value = "";
+  document.getElementById("authPw").value = "";
+  show("screenAuth");
+};
+
+document.getElementById("applyBtn").onclick = () => {
+  document.getElementById("settingsOverlay").classList.add("hidden");
+  document.getElementById("applyOverlay").classList.remove("hidden");
+  document.getElementById("applyBody").classList.remove("hidden");
+  document.getElementById("applyResult").classList.add("hidden");
+};
+document.getElementById("closeApply").onclick = () => document.getElementById("applyOverlay").classList.add("hidden");
+document.getElementById("submitApply").onclick = async () => {
+  const message = document.getElementById("applyMsg").value;
+  try{
+    const r = await api("/api/mod/apply", { method:"POST", body: JSON.stringify({ message }) });
+    document.getElementById("applyBody").classList.add("hidden");
+    const result = document.getElementById("applyResult");
+    result.classList.remove("hidden");
+    result.textContent = r.status === "bootstrapped"
+      ? "No moderators yet — you're now the founding moderator for this community."
+      : "Request sent. An existing moderator will review it.";
+    if(r.status === "bootstrapped"){
+      me.isMod = true;
+      document.getElementById("modBadge").classList.remove("hidden");
+      document.getElementById("modRow").classList.remove("hidden");
+      document.getElementById("applyRow").classList.add("hidden");
+      renderMessages();
+    }
+  }catch(e){
+    showBanner(e.message, "err");
+  }
+};
+
+document.getElementById("openModPanel").onclick = async () => {
+  document.getElementById("settingsOverlay").classList.add("hidden");
+  document.getElementById("modOverlay").classList.remove("hidden");
+  await loadModPanel();
+};
+document.getElementById("closeModPanel").onclick = () => document.getElementById("modOverlay").classList.add("hidden");
+async function loadModPanel(){
+  try{
+    const [reqs, mods] = await Promise.all([api("/api/mod/requests"), api("/api/mod/mods")]);
+    const reqList = document.getElementById("reqList");
+    reqList.innerHTML = reqs.length ? "" : `<div class="sub">Nothing pending.</div>`;
+    reqs.forEach(r => {
+      const div = document.createElement("div");
+      div.className = "reqCard";
+      div.innerHTML = `<div class="n serif">${escapeHtml(r.name)}</div>${r.message ? `<div class="m">${escapeHtml(r.message)}</div>` : ""}
+        <div class="btns"><button class="smallBtn approveBtn" data-approve="${escapeHtml(r.name)}">Approve</button><button class="smallBtn denyBtn" data-deny="${escapeHtml(r.name)}">Deny</button></div>`;
+      reqList.appendChild(div);
+    });
+    reqList.querySelectorAll("[data-approve]").forEach(b => b.onclick = async () => { await api(`/api/mod/requests/${encodeURIComponent(b.dataset.approve)}/approve`, {method:"POST"}); loadModPanel(); });
+    reqList.querySelectorAll("[data-deny]").forEach(b => b.onclick = async () => { await api(`/api/mod/requests/${encodeURIComponent(b.dataset.deny)}/deny`, {method:"POST"}); loadModPanel(); });
+    const modList = document.getElementById("modList");
+    modList.innerHTML = "";
+    mods.forEach(m => { const s = document.createElement("span"); s.className="badge"; s.textContent=m; modList.appendChild(s); });
+  }catch(e){
+    showBanner(e.message, "err");
+  }
+}
+
+function openSidebarFn(){ document.getElementById("sidebar").style.display="flex"; }
+function closeSidebarFn(){ document.getElementById("sidebar").style.display=""; }
+function applyResponsive(){
+  const mobile = window.innerWidth <= 760;
+  document.getElementById("openSidebar").classList.toggle("hidden", !mobile);
+  document.getElementById("closeSidebar").classList.toggle("hidden", !mobile);
+  if(!mobile) document.getElementById("sidebar").style.display = "";
+}
+document.getElementById("openSidebar").onclick = openSidebarFn;
+document.getElementById("closeSidebar").onclick = closeSidebarFn;
+window.addEventListener("resize", applyResponsive);
+applyResponsive();
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(()=>{}));
+}
+
+boot();
+</script>
+</body>
+</html>
