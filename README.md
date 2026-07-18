@@ -1,7 +1,8 @@
 # Parent Circle — shared community server
 
-A real backend so the same anonymous identity, password, and chat rooms work
-from any device. No external dependencies — just Node.js.
+A real backend so the same email login and chat rooms work from any device.
+No external dependencies — just Node.js. Rooms: Important Documents, IEB,
+Cambridge, and Chat Forum.
 
 ## What's inside
 
@@ -60,10 +61,38 @@ straightforward options, roughly easiest first:
 
 ## Environment variables
 
-| Variable         | Default          | Notes                                             |
-|-------------------|-----------------|----------------------------------------------------|
-| `PORT`            | `3000`           | What port the server listens on                    |
-| `SESSION_SECRET`  | random each boot | **Set this in production** or logins reset on restart |
+| Variable           | Default          | Notes                                             |
+|--------------------|------------------|----------------------------------------------------|
+| `PORT`              | `3000`           | What port the server listens on                    |
+| `SESSION_SECRET`    | random each boot | **Set this in production** or logins reset on restart |
+| `DATA_DIR`          | `./data`         | Set to your volume's mount path (e.g. `/data`) on Railway/Render so data survives redeploys |
+| `RESEND_API_KEY`    | unset            | Enables document-upload email alerts. Get one free at [resend.com](https://resend.com) |
+| `ALERT_FROM_EMAIL`  | `alerts@example.com` | Must be a sender address verified in your Resend account |
+| `APP_URL`           | unset            | Your public app URL — included as a link in alert emails if set |
+
+## Document upload email alerts
+
+When someone posts a file to the **Important Documents** room, every
+registered email address (except the uploader's) gets an email. To turn
+this on:
+
+1. Sign up at [resend.com](https://resend.com) (free tier is enough for a
+   small community) and verify a sending domain or address.
+2. In Railway/Render, add `RESEND_API_KEY` (from your Resend dashboard) and
+   `ALERT_FROM_EMAIL` (the address you verified) as environment variables.
+3. Optionally set `APP_URL` to your Railway domain so alert emails include a
+   working link back to the app.
+
+Without `RESEND_API_KEY` set, the app still works fine — it just logs
+"email skipped" to the server console instead of sending anything, so you
+can test everything else first.
+
+**Worth knowing:** this version does not verify that someone actually owns
+the email they register with — there's no confirmation link. That means
+anyone could type in someone else's email and they'd start receiving
+document alerts. Fine for a trusted small community where you know who's
+joining; if this opens up more widely, email verification should be added
+before relying on it.
 
 ## Once it's running, install it as an app on any device
 
